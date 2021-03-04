@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 import useGridCoords from "./useGridCoords";
 import getInitialGameMatrix from "./getInitialGameMatrix";
 import checkWin from "../../../util/checkWin";
@@ -13,6 +13,8 @@ const BoardContext = React.createContext();
 export default BoardContext;
 
 const BoardContextProvider = (props) => {
+  const gameGridRef = useRef();
+
   const [gameStatus, setGameStatus] = useState("PLAYING");
   const { headerCoords, gameMatrixCoords } = useGridCoords();
   const [locked, setLocked] = useState(false);
@@ -40,25 +42,28 @@ const BoardContextProvider = (props) => {
   }, [loading]);
 
   useEffect(() => {
+    const gameGrid = gameGridRef.current;
+
     const lockMove = (e) => {
       if (locked) return;
       checkActiveColumn({ e, activeColumn, headerCoords, setActiveColumn });
       setGameStatus("GAME_HANDLE_MOVE");
       setLocked(true);
     };
-    document.addEventListener("mousedown", lockMove);
+    gameGrid.addEventListener("mousedown", lockMove);
     return () => {
-      document.removeEventListener("mousedown", lockMove);
+      gameGrid.removeEventListener("mousedown", lockMove);
     };
   }, [locked, activeColumn, headerCoords]);
 
   useEffect(() => {
+    const gameGrid = gameGridRef.current;
     const dragToken = (e) => {
       if (locked) return;
       checkActiveColumn({ e, activeColumn, headerCoords, setActiveColumn });
     };
-    document.addEventListener("mousemove", dragToken);
-    return () => document.removeEventListener("mousemove", dragToken);
+    gameGrid.addEventListener("mousemove", dragToken);
+    return () => gameGrid.removeEventListener("mousemove", dragToken);
   }, [locked, activeColumn, headerCoords]);
 
   useEffect(() => {
@@ -146,6 +151,7 @@ const BoardContextProvider = (props) => {
         winner,
         winningCoords,
         loading,
+        gameGridRef,
       }}
     >
       {props.children}
