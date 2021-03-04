@@ -3,15 +3,17 @@ import "./GameGrid.scss";
 import _throttle from "lodash/throttle";
 import { TweenMax } from "gsap";
 import checkWin from "../../util/checkWin";
-import { nRows, nCols, yGridMax } from "../../shared/gridConfig";
+import { nCols, yGridMax } from "../../shared/gridConfig";
 import getInitialGameMatrix from "./hooks/getInitialGameMatrix";
+import { useGridCoords } from "./hooks";
 
 const classNames = require("classnames");
 
-const headerXCoords = [];
 const gameMatrixCoords = [];
 
 function GameGrid() {
+  const { headerXCoords } = useGridCoords();
+
   const tableRef = useRef();
 
   const [gameStatus, setGameStatus] = useState("GAME_PLAYING");
@@ -33,29 +35,6 @@ function GameGrid() {
   };
 
   useEffect(() => {
-    const setHeaderXCoords = () => {
-      for (let y = 0; y < nCols; y++) {
-        const th = document.getElementsByClassName("header" + y)[0];
-        const thRect = th.getBoundingClientRect();
-        headerXCoords[y] = {
-          l: thRect.x,
-          r: thRect.x + thRect.width,
-        };
-      }
-    };
-    setHeaderXCoords();
-
-    // const setGameMatrixCoords = () => {
-    //   for (let y = 0; y < nCols; y++) {
-    //     const td = document.getElementsByClassName("header" + y)[0];
-    //     const tdRect = td.getBoundingClientRect();
-
-    //   }
-    // };
-    // setGameMatrixCoords();
-  }, []);
-
-  useEffect(() => {
     const handleMove = () => {
       if (gameStatus !== "GAME_PLAYING") {
         return;
@@ -65,7 +44,6 @@ function GameGrid() {
         if (gameMatrix[y][activeColumn] === 0 && foundSpot === false) {
           const gm = [...gameMatrix];
           gm[y][activeColumn] = currentPlayer;
-          // console.log(gm);
           setGameMatrix(gm);
           foundSpot = true;
           console.log({ x: activeColumn, y: y });
@@ -128,9 +106,9 @@ function GameGrid() {
       });
     };
 
-    document.addEventListener("mouseover", _throttle(dragToken, 50));
+    document.addEventListener("mousemove", _throttle(dragToken, 50));
     return () =>
-      document.removeEventListener("mouseover", _throttle(dragToken, 50));
+      document.removeEventListener("mousemove", _throttle(dragToken, 50));
   });
 
   return (
@@ -168,7 +146,7 @@ function GameGrid() {
                   });
                   return (
                     <td className={tdClasses} key={`slot_${x}_${y}`}>
-                      <span>{`${x}_${y}`}</span>
+                      <span></span>
                     </td>
                   );
                 })}
