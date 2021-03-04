@@ -14,7 +14,7 @@ const gameMatrixCoords = [];
 function GameGrid() {
   const tableRef = useRef();
 
-  const [gameStatus, setGameStatus] = useState("GAME_ACTIVE");
+  const [gameStatus, setGameStatus] = useState("GAME_PLAYING");
   const [gameMatrix, setGameMatrix] = useState(getInitialGameMatrix());
   const [activeColumn, setActiveColumn] = useState(null);
   const [currentPlayer, setCurrentPlayer] = useState(1);
@@ -57,17 +57,20 @@ function GameGrid() {
 
   useEffect(() => {
     const handleMove = () => {
-      // [TODO] handle activeColumn mobile
+      if (gameStatus !== "GAME_PLAYING") {
+        return;
+      }
       let foundSpot = false;
       for (let y = yGridMax; y >= 0; y--) {
-        const gridVal = gameMatrix[y][activeColumn];
-        if (gridVal === 0 && foundSpot === false) {
+        if (gameMatrix[y][activeColumn] === 0 && foundSpot === false) {
           const gm = [...gameMatrix];
           gm[y][activeColumn] = currentPlayer;
           // console.log(gm);
           setGameMatrix(gm);
           foundSpot = true;
+          console.log({ x: activeColumn, y: y });
           setLastMove({ x: activeColumn, y: y });
+          setActiveColumn(null); // for mobile
         }
       }
     };
@@ -125,9 +128,9 @@ function GameGrid() {
       });
     };
 
-    document.addEventListener("mousemove", _throttle(dragToken, 50));
+    document.addEventListener("mouseover", _throttle(dragToken, 50));
     return () =>
-      document.removeEventListener("mousemove", _throttle(dragToken, 50));
+      document.removeEventListener("mouseover", _throttle(dragToken, 50));
   });
 
   return (
