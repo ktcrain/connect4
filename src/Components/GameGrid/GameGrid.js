@@ -1,143 +1,22 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React from "react";
 import "./GameGrid.scss";
-import { gsap, TimelineLite, Bounce } from "gsap";
-import { CSSRulePlugin } from "gsap/CSSRulePlugin";
-import checkWin, { isWinningCoord } from "../../util/checkWin";
-import findMoveCoords from "../../util/findMoveCoords";
-import getInitialGameMatrix from "./hooks/getInitialGameMatrix";
-import { useGridCoords } from "./hooks";
+import { useBoardContext } from "./hooks";
 import { motion, AnimatePresence } from "framer-motion";
 import PageLoader from "../PageLoader";
+import { isWinningCoord } from "../../util/checkWin";
 
 const classNames = require("classnames");
 
-gsap.registerPlugin(CSSRulePlugin);
-
 function GameGrid() {
-  const { headerCoords, gameMatrixCoords } = useGridCoords();
-
-  const [loading, setLoading] = useState(true);
-  const [gameStatus, setGameStatus] = useState("PLAYING");
-  const [gameMatrix, setGameMatrix] = useState(getInitialGameMatrix());
-  const [activeColumn, setActiveColumn] = useState(null);
-  const [currentPlayer, setCurrentPlayer] = useState(1);
-  const [lastMove, setLastMove] = useState(null);
-  const [winner, setWinner] = useState(null);
-  const [winningCoords, setWinningCoords] = useState([]);
-  const [locked, setLocked] = useState(false);
-
-  const handleReset = () => {
-    setGameMatrix(getInitialGameMatrix());
-    setLastMove(null);
-    setLocked(false);
-    setWinner(null);
-    setWinningCoords([]);
-    setGameStatus("PLAYING");
-  };
-
-  useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 2000);
-  }, [loading]);
-
-  const checkActiveColumn = useCallback(
-    (e) => {
-      const mouseCoords = {
-        x: e.clientX,
-        y: e.clientY,
-      };
-
-      headerCoords.forEach((bound, i) => {
-        if (bound.l <= mouseCoords.x && bound.r >= mouseCoords.x) {
-          if (activeColumn !== i) {
-            setActiveColumn(i);
-          }
-        }
-      });
-    },
-    [activeColumn, headerCoords]
-  );
-
-  useEffect(() => {
-    const lockMove = (e) => {
-      if (locked) return;
-      checkActiveColumn(e);
-      setGameStatus("GAME_HANDLE_MOVE");
-      setLocked(true);
-    };
-    document.addEventListener("mousedown", lockMove);
-    return () => {
-      document.removeEventListener("mousedown", lockMove);
-    };
-  }, [gameStatus, locked, checkActiveColumn]);
-
-  useEffect(() => {
-    const dragToken = (e) => {
-      if (locked) return;
-      checkActiveColumn(e);
-    };
-    document.addEventListener("mousemove", dragToken);
-    return () => document.removeEventListener("mousemove", dragToken);
-  }, [checkActiveColumn, locked]);
-
-  useEffect(() => {
-    const handleMove = () => {
-      const moveCoords = findMoveCoords({ x: activeColumn, gameMatrix });
-
-      if (moveCoords) {
-        const { x, y } = moveCoords;
-        const onAfterAnimate = () => {
-          setLastMove({ x, y });
-          setGameMatrix((gm) => {
-            gm[y][x] = currentPlayer;
-            return gm;
-          });
-          setActiveColumn(null); // for mobile
-          setGameStatus("CHECK_WINNER");
-        };
-
-        const token = CSSRulePlugin.getRule(
-          `.GameGrid-Table thead td.header.active span:after`
-        );
-
-        const topPos = gameMatrixCoords[y][x].y - headerCoords[y].y;
-        const tl = new TimelineLite({ onComplete: onAfterAnimate });
-        tl.to(token, 1, {
-          top: topPos + "px",
-          ease: Bounce.easeOut,
-        }).set(token, {
-          top: 0,
-        });
-      }
-    };
-    if (gameStatus === "GAME_HANDLE_MOVE") handleMove();
-  }, [
-    gameStatus,
-    gameMatrixCoords,
+  const {
     activeColumn,
-    currentPlayer,
     gameMatrix,
-    headerCoords,
-  ]);
-
-  useEffect(() => {
-    const checkWinner = () => {
-      const winningResult = checkWin({ lastMove, gameMatrix, currentPlayer });
-
-      if (winningResult) {
-        setWinner(winningResult.winner);
-        setGameStatus("GAME_WIN");
-        setWinningCoords(winningResult.matches);
-      } else {
-        setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
-        setGameStatus("PLAYING");
-        setLocked(false);
-      }
-    };
-
-    if (gameStatus === "CHECK_WINNER") checkWinner();
-  }, [gameStatus, currentPlayer, gameMatrix, lastMove, winner]);
+    currentPlayer,
+    winner,
+    winningCoords,
+    handleReset,
+    loading,
+  } = useBoardContext();
 
   const tableClasses = classNames({
     "GameGrid-Table": true,
