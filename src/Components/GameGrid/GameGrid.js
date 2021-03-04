@@ -1,9 +1,8 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import "./GameGrid.scss";
-// import _throttle from "lodash/throttle";
 import { gsap, TimelineLite, Bounce } from "gsap";
 import { CSSRulePlugin } from "gsap/CSSRulePlugin";
-import checkWin from "../../util/checkWin";
+import checkWin, { isWinningCoord } from "../../util/checkWin";
 import findMoveCoords from "../../util/findMoveCoords";
 import getInitialGameMatrix from "./hooks/getInitialGameMatrix";
 import { useGridCoords } from "./hooks";
@@ -13,16 +12,6 @@ import PageLoader from "../PageLoader";
 const classNames = require("classnames");
 
 gsap.registerPlugin(CSSRulePlugin);
-
-const isWinningCoord = ({ cx, cy, winningCoords }) => {
-  let isWin = false;
-  winningCoords.forEach(({ x, y }) => {
-    if (cx === x && cy === y) {
-      isWin = true;
-    }
-  });
-  return isWin;
-};
 
 function GameGrid() {
   const { headerCoords, gameMatrixCoords } = useGridCoords();
@@ -90,11 +79,12 @@ function GameGrid() {
     };
     document.addEventListener("mousemove", dragToken);
     return () => document.removeEventListener("mousemove", dragToken);
-  });
+  }, [checkActiveColumn, locked]);
 
   useEffect(() => {
     const handleMove = () => {
       const moveCoords = findMoveCoords({ x: activeColumn, gameMatrix });
+
       if (moveCoords) {
         const { x, y } = moveCoords;
         const onAfterAnimate = () => {
@@ -151,7 +141,6 @@ function GameGrid() {
 
   const tableClasses = classNames({
     "GameGrid-Table": true,
-    locked: locked,
     loading: loading,
   });
 

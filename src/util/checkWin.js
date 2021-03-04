@@ -147,4 +147,15 @@ const checkWin = ({ lastMove, gameMatrix, currentPlayer }) => {
   return winningResult;
 };
 
+const isWinningCoord = ({ cx, cy, winningCoords }) => {
+  let isWin = false;
+  winningCoords.forEach(({ x, y }) => {
+    if (cx === x && cy === y) {
+      isWin = true;
+    }
+  });
+  return isWin;
+};
+
 export default checkWin;
+export { isWinningCoord };
