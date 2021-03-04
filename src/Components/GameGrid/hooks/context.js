@@ -1,8 +1,9 @@
-import React, { useContext, useState, useCallback, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import useGridCoords from "./useGridCoords";
 import getInitialGameMatrix from "./getInitialGameMatrix";
 import checkWin from "../../../util/checkWin";
 import findMoveCoords from "../../../util/findMoveCoords";
+import checkActiveColumn from "../../../util/checkActiveColumn";
 import { CSSRulePlugin } from "gsap/CSSRulePlugin";
 import { gsap, TimelineLite, Bounce } from "gsap";
 
@@ -32,24 +33,6 @@ const BoardContextProvider = (props) => {
     setGameStatus("PLAYING");
   };
 
-  const checkActiveColumn = useCallback(
-    (e) => {
-      const mouseCoords = {
-        x: e.clientX,
-        y: e.clientY,
-      };
-
-      headerCoords.forEach((bound, i) => {
-        if (bound.l <= mouseCoords.x && bound.r >= mouseCoords.x) {
-          if (activeColumn !== i) {
-            setActiveColumn(i);
-          }
-        }
-      });
-    },
-    [activeColumn, headerCoords]
-  );
-
   useEffect(() => {
     setTimeout(() => {
       setLoading(false);
@@ -59,7 +42,7 @@ const BoardContextProvider = (props) => {
   useEffect(() => {
     const lockMove = (e) => {
       if (locked) return;
-      checkActiveColumn(e);
+      checkActiveColumn({ e, activeColumn, headerCoords, setActiveColumn });
       setGameStatus("GAME_HANDLE_MOVE");
       setLocked(true);
     };
@@ -67,16 +50,16 @@ const BoardContextProvider = (props) => {
     return () => {
       document.removeEventListener("mousedown", lockMove);
     };
-  }, [locked, checkActiveColumn]);
+  }, [locked, activeColumn, headerCoords]);
 
   useEffect(() => {
     const dragToken = (e) => {
       if (locked) return;
-      checkActiveColumn(e);
+      checkActiveColumn({ e, activeColumn, headerCoords, setActiveColumn });
     };
     document.addEventListener("mousemove", dragToken);
     return () => document.removeEventListener("mousemove", dragToken);
-  }, [checkActiveColumn, locked]);
+  }, [locked, activeColumn, headerCoords]);
 
   useEffect(() => {
     const handleMove = () => {
@@ -151,25 +134,16 @@ const BoardContextProvider = (props) => {
       value={{
         handleReset,
         gameStatus,
-        setGameStatus,
         headerCoords,
         gameMatrixCoords,
         locked,
-        setLocked,
         activeColumn,
-        setActiveColumn,
         gameMatrix,
-        setGameMatrix,
         currentPlayer,
-        setCurrentPlayer,
         lastMove,
-        setLastMove,
         winner,
-        setWinner,
         winningCoords,
-        setWinningCoords,
         loading,
-        setLoading,
       }}
     >
       {props.children}
