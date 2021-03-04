@@ -62,9 +62,22 @@ const BoardContextProvider = (props) => {
   }, [locked, activeColumn, headerCoords]);
 
   useEffect(() => {
+    const animateMove = ({ x, y, onComplete, top }) => {
+      const token = CSSRulePlugin.getRule(
+        `.GameGrid-Table thead td.header.active span:after`
+      );
+
+      const tl = new TimelineLite({ onComplete });
+      tl.to(token, 1, {
+        top: top + "px",
+        ease: Bounce.easeOut,
+      }).set(token, {
+        top: 0,
+      });
+    };
+
     const handleMove = () => {
       const moveCoords = findMoveCoords({ x: activeColumn, gameMatrix });
-
       if (moveCoords) {
         const { x, y } = moveCoords;
         const onAfterAnimate = () => {
@@ -76,19 +89,8 @@ const BoardContextProvider = (props) => {
           setActiveColumn(null); // for mobile
           setGameStatus("CHECK_WINNER");
         };
-
-        const token = CSSRulePlugin.getRule(
-          `.GameGrid-Table thead td.header.active span:after`
-        );
-
-        const topPos = gameMatrixCoords[y][x].y - headerCoords[y].y;
-        const tl = new TimelineLite({ onComplete: onAfterAnimate });
-        tl.to(token, 1, {
-          top: topPos + "px",
-          ease: Bounce.easeOut,
-        }).set(token, {
-          top: 0,
-        });
+        const top = gameMatrixCoords[y][x].y - headerCoords[y].y;
+        animateMove({ x, y, top, onComplete: onAfterAnimate });
       }
     };
     if (gameStatus === "GAME_HANDLE_MOVE") handleMove();
