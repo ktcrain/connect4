@@ -1,161 +1,249 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import "./GameGrid.scss";
-import _throttle from "lodash/throttle";
-import { TweenMax } from "gsap";
+// import _throttle from "lodash/throttle";
+import { gsap, TimelineLite, Bounce } from "gsap";
+import { CSSRulePlugin } from "gsap/CSSRulePlugin";
 import checkWin from "../../util/checkWin";
-import { nCols, yGridMax } from "../../shared/gridConfig";
+import findMoveCoords from "../../util/findMoveCoords";
 import getInitialGameMatrix from "./hooks/getInitialGameMatrix";
 import { useGridCoords } from "./hooks";
+import { motion, AnimatePresence } from "framer-motion";
+import PageLoader from "../PageLoader";
 
 const classNames = require("classnames");
 
-const gameMatrixCoords = [];
+gsap.registerPlugin(CSSRulePlugin);
+
+const isWinningCoord = ({ cx, cy, winningCoords }) => {
+  let isWin = false;
+  winningCoords.forEach(({ x, y }) => {
+    if (cx === x && cy === y) {
+      isWin = true;
+    }
+  });
+  return isWin;
+};
 
 function GameGrid() {
-  const { headerXCoords } = useGridCoords();
+  const { headerCoords, gameMatrixCoords } = useGridCoords();
 
-  const tableRef = useRef();
-
-  const [gameStatus, setGameStatus] = useState("GAME_PLAYING");
+  const [loading, setLoading] = useState(true);
+  const [gameStatus, setGameStatus] = useState("PLAYING");
   const [gameMatrix, setGameMatrix] = useState(getInitialGameMatrix());
   const [activeColumn, setActiveColumn] = useState(null);
   const [currentPlayer, setCurrentPlayer] = useState(1);
   const [lastMove, setLastMove] = useState(null);
   const [winner, setWinner] = useState(null);
   const [winningCoords, setWinningCoords] = useState([]);
+  const [locked, setLocked] = useState(false);
 
-  const isWinningCoord = ({ cx, cy }) => {
-    let isWin = false;
-    winningCoords.forEach(({ x, y }) => {
-      if (cx === x && cy === y) {
-        isWin = true;
-      }
-    });
-    return isWin;
+  const handleReset = () => {
+    setGameMatrix(getInitialGameMatrix());
+    setLastMove(null);
+    setLocked(false);
+    setWinner(null);
+    setWinningCoords([]);
+    setGameStatus("PLAYING");
   };
 
   useEffect(() => {
-    const handleMove = () => {
-      if (gameStatus !== "GAME_PLAYING") {
-        return;
-      }
-      let foundSpot = false;
-      for (let y = yGridMax; y >= 0; y--) {
-        if (gameMatrix[y][activeColumn] === 0 && foundSpot === false) {
-          const gm = [...gameMatrix];
-          gm[y][activeColumn] = currentPlayer;
-          setGameMatrix(gm);
-          foundSpot = true;
-          console.log({ x: activeColumn, y: y });
-          setLastMove({ x: activeColumn, y: y });
-          setActiveColumn(null); // for mobile
-        }
-      }
-    };
+    setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+  }, [loading]);
 
-    document.addEventListener("mousedown", handleMove);
-    return () => document.removeEventListener("mousedown", handleMove);
-  });
-
-  useEffect(() => {
-    const checkWinner = () => {
-      if (lastMove === null) {
-        return;
-      }
-
-      console.log("CHECKING WINNER");
-      console.log("lastMove", lastMove);
-
-      const winningResult = checkWin({ lastMove, gameMatrix, currentPlayer });
-
-      if (winningResult) {
-        console.log("winningResult", winningResult);
-        setWinner(winningResult.winner);
-        setWinningCoords(winningResult.matches);
-      }
-
-      switchPlayer();
-    };
-    const switchPlayer = () => {
-      setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
-    };
-
-    checkWinner();
-  }, [lastMove]);
-
-  useEffect(() => {
-    if (winner !== null) {
-      console.log("Player " + winner + " wins!!!");
-      setGameStatus("GAME_WIN");
-    }
-  }, [winner]);
-
-  useEffect(() => {
-    const dragToken = (e) => {
+  const checkActiveColumn = useCallback(
+    (e) => {
       const mouseCoords = {
         x: e.clientX,
         y: e.clientY,
       };
 
-      headerXCoords.forEach((bound, i) => {
+      headerCoords.forEach((bound, i) => {
         if (bound.l <= mouseCoords.x && bound.r >= mouseCoords.x) {
           if (activeColumn !== i) {
             setActiveColumn(i);
           }
         }
       });
+    },
+    [activeColumn, headerCoords]
+  );
+
+  useEffect(() => {
+    const lockMove = (e) => {
+      if (locked) return;
+      checkActiveColumn(e);
+      setGameStatus("GAME_HANDLE_MOVE");
+      setLocked(true);
+    };
+    document.addEventListener("mousedown", lockMove);
+    return () => {
+      document.removeEventListener("mousedown", lockMove);
+    };
+  }, [gameStatus, locked, checkActiveColumn]);
+
+  useEffect(() => {
+    const dragToken = (e) => {
+      if (locked) return;
+      checkActiveColumn(e);
+    };
+    document.addEventListener("mousemove", dragToken);
+    return () => document.removeEventListener("mousemove", dragToken);
+  });
+
+  useEffect(() => {
+    const handleMove = () => {
+      const moveCoords = findMoveCoords({ x: activeColumn, gameMatrix });
+      if (moveCoords) {
+        const { x, y } = moveCoords;
+        const onAfterAnimate = () => {
+          setLastMove({ x, y });
+          setGameMatrix((gm) => {
+            gm[y][x] = currentPlayer;
+            return gm;
+          });
+          setActiveColumn(null); // for mobile
+          setGameStatus("CHECK_WINNER");
+        };
+
+        const token = CSSRulePlugin.getRule(
+          `.GameGrid-Table thead td.header.active span:after`
+        );
+
+        const topPos = gameMatrixCoords[y][x].y - headerCoords[y].y;
+        const tl = new TimelineLite({ onComplete: onAfterAnimate });
+        tl.to(token, 1, {
+          top: topPos + "px",
+          ease: Bounce.easeOut,
+        }).set(token, {
+          top: 0,
+        });
+      }
+    };
+    if (gameStatus === "GAME_HANDLE_MOVE") handleMove();
+  }, [
+    gameStatus,
+    gameMatrixCoords,
+    activeColumn,
+    currentPlayer,
+    gameMatrix,
+    headerCoords,
+  ]);
+
+  useEffect(() => {
+    const checkWinner = () => {
+      const winningResult = checkWin({ lastMove, gameMatrix, currentPlayer });
+
+      if (winningResult) {
+        setWinner(winningResult.winner);
+        setGameStatus("GAME_WIN");
+        setWinningCoords(winningResult.matches);
+      } else {
+        setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
+        setGameStatus("PLAYING");
+        setLocked(false);
+      }
     };
 
-    document.addEventListener("mousemove", _throttle(dragToken, 50));
-    return () =>
-      document.removeEventListener("mousemove", _throttle(dragToken, 50));
+    if (gameStatus === "CHECK_WINNER") checkWinner();
+  }, [gameStatus, currentPlayer, gameMatrix, lastMove, winner]);
+
+  const tableClasses = classNames({
+    "GameGrid-Table": true,
+    locked: locked,
+    loading: loading,
   });
 
   return (
-    <div className="GameGrid">
-      <div className="GameGrid-Message">
-        {gameStatus} {winner}
-      </div>
-      <table id="GameGridTable" ref={tableRef} className="GameGrid-Table">
-        <thead>
-          <tr id="GameGridTableHeader">
-            {gameMatrix[0].map((x, y) => {
-              const headerClasses = classNames({
-                [`header${y}`]: true,
-                active: y === activeColumn,
-                [`player${currentPlayer}`]: true,
-              });
-              return (
-                <td key={`thead${y}`} className={headerClasses}>
-                  <span></span>
-                </td>
-              );
-            })}
-          </tr>
-        </thead>
-        <tbody>
-          {gameMatrix.map((row, y) => {
-            return (
-              <tr key={`col${y}`}>
-                {row.map((v, x) => {
-                  const tdClasses = classNames({
-                    highlight: x === activeColumn,
-                    [`player${v}`]: true,
+    <AnimatePresence exitBeforeEnter>
+      <div className="GameGrid">
+        {winner && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0, top: "-300px" }}
+            transition={{
+              height: { type: "spring", stiffness: 100 },
+              default: { duration: 1 },
+            }}
+            className="GameGrid-Message"
+          >
+            <h1>Player {winner} wins</h1>
+            <button onClick={handleReset}>Play Again</button>{" "}
+          </motion.div>
+        )}
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{
+              default: { duration: 0.25 },
+            }}
+            className="GameGrid-Loading"
+          >
+            <PageLoader />
+          </motion.div>
+        )}
+        <motion.div
+          initial={{ top: "-200px", opacity: 0, height: 0 }}
+          animate={{ top: 0, opacity: 1, height: "auto" }}
+          exit={{ top: "-200px", opacity: 0, height: 0 }}
+          transition={{
+            delay: 2,
+            default: { duration: 1 },
+          }}
+          className="GameGrid-Wrapper"
+        >
+          <table className={tableClasses}>
+            <thead>
+              <tr id="GameGridTableHeader">
+                {gameMatrix[0].map((x, y) => {
+                  const headerClasses = classNames({
+                    header: true,
                     [`header${y}`]: true,
-                    winningCoord: isWinningCoord({ cx: x, cy: y }),
+                    active: y === activeColumn,
+                    [`player${currentPlayer}`]: true,
                   });
                   return (
-                    <td className={tdClasses} key={`slot_${x}_${y}`}>
-                      <span></span>
+                    <td key={`thead${y}`} className={headerClasses}>
+                      <span> </span>
                     </td>
                   );
                 })}
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+            </thead>
+            <tbody>
+              {gameMatrix.map((row, y) => {
+                return (
+                  <tr key={`col${y}`}>
+                    {row.map((v, x) => {
+                      const tdClasses = classNames({
+                        [`cell_${x}_${y}`]: true,
+                        highlight: x === activeColumn,
+                        [`player${v}`]: true,
+                        [`header${y}`]: true,
+                        winningCoord: isWinningCoord({
+                          cx: x,
+                          cy: y,
+                          winningCoords,
+                        }),
+                      });
+                      return (
+                        <td className={tdClasses} key={`cell_${x}_${y}`}>
+                          <span></span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </motion.div>
+      </div>
+    </AnimatePresence>
   );
 }
 

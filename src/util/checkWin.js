@@ -1,4 +1,4 @@
-import { nRows, nCols, xGridMax, yGridMax } from "../shared/gridConfig";
+import { xGridMax, yGridMax } from "../shared/gridConfig";
 
 const minVal = (val, lowerBounds = 0) => {
   return val < lowerBounds ? lowerBounds : val;
@@ -62,6 +62,7 @@ const checkWinPositiveDiagonal = ({ lastMove, gameMatrix, currentPlayer }) => {
   let yMax = maxVal(lastMove.y + 3, yGridMax);
   let matches = [];
 
+  // eslint-disable-next-line no-sequences
   for (let y = yMax, x = xMin; y <= yMax, x <= xMax; x++, y--) {
     if (y <= yMax && y >= yMin && x <= xMax && x >= xMin) {
       let gridVal = gameMatrix[y][x];
@@ -85,6 +86,7 @@ const checkWinNegativeDiagonal = ({ lastMove, gameMatrix, currentPlayer }) => {
   let yMax = maxVal(lastMove.y + 3, yGridMax);
   let matches = [];
 
+  // eslint-disable-next-line no-sequences
   for (let y = yMax, x = xMax; y >= yMin, x >= xMin; x--, y--) {
     if (y <= yMax && y >= yMin && x <= xMax && x >= xMin) {
       let gridVal = gameMatrix[y][x];

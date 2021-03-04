@@ -1,5 +1,7 @@
+$lightYellow: rgb(238, 234, 189);
+
 .GameGrid {
-  background: rgb(238, 234, 189);
+  background: $lightYellow;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -7,27 +9,61 @@
   width: 100%;
   height: 100vh;
 
+  &-Loading {
+    position: fixed;
+    background: $lightYellow;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
   &-Message {
-    min-height: 2rem;
-    background: pink;
+    // background: pink;
+    transition: all 500 ease-in-out;
+    h1 {
+      font-size: 2rem;
+      font-weight: bold;
+    }
   }
 
   &-Table {
+    border-collapse: collapse;
+    opacity: 1;
+    transition: opacity 0.25s ease-in-out;
+    &.loading {
+      opacity: 0;
+    }
+    &.locked {
+      // background: orange;
+      td {
+        &.highlight {
+          background: inherit;
+        }
+      }
+    }
     td {
       border: 0;
       padding: 0;
       margin: 0;
       &.highlight {
-        background: darken(rgb(238, 234, 189), 10%);
+        background: rgba(250, 250, 117, 0.25);
       }
       &.winningCoord {
-        background: yellow;
+        background: rgba(250, 250, 117, 0.5);
       }
       span {
         display: block;
         width: 10vw;
         height: 10vw;
-        // padding: 1rem;
+        max-width: 5rem;
+        max-height: 5rem;
         margin: 0.25rem;
         border-radius: 50%;
         background: #fff;
@@ -45,18 +81,18 @@
       }
       // background: purple;
       td.active span {
-        background: orange; // debug
-        // top: 300px;
+        // background: orange; // debug
+        position: relative;
       }
-      td.active.player1 span {
+      td.active.player1 span:after {
         background: red;
       }
-      td.active.player2 span {
+      td.active.player2 span:after {
         background: blue;
       }
     }
     tbody {
-      border: 0.25rem solid #000;
+      // border: 0.25rem solid #000;
       td {
         &.player1 span {
           background: red;
@@ -69,15 +105,45 @@
   }
 }
 
-// .Token {
-//   position: absolute;
-//   top: 0;
-//   left: 0;
-//   background: orange;
-//   display: block;
-//   width: 1rem;
-//   height: 1rem;
-//   padding: 1rem;
-//   margin: 0.25rem;
-//   border-radius: 50%;
-// }
+// TweenMax CSS Rule selector
+.GameGrid-Table thead td.header.active span:after {
+  position: absolute;
+  display: block;
+  content: "";
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  top: 0px;
+  left: 0px;
+}
+
+button {
+  display: inline-block;
+  border: none;
+  padding: 1rem 2rem;
+  margin: 0;
+  text-decoration: none;
+  background: #0069ed;
+  color: #ffffff;
+  font-family: sans-serif;
+  font-size: 1rem;
+  cursor: pointer;
+  text-align: center;
+  transition: background 250ms ease-in-out, transform 150ms ease;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+button:hover,
+button:focus {
+  background: #0053ba;
+}
+
+button:focus {
+  outline: 1px solid #fff;
+  outline-offset: -4px;
+}
+
+button:active {
+  transform: scale(0.99);
+}

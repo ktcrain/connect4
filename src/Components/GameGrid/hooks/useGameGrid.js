@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect } from "react";
 // import { nCols } from "../../../shared/gridConfig";
 
 function useGameGrid() {
   useEffect(() => {}, []);
 
-  return {};
+  return <p></p>;
 }
 
 export default useGameGrid;
