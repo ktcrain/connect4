@@ -1,9 +1,4 @@
-const checkActiveColumn = ({
-  e,
-  activeColumn,
-  headerCoords,
-  setActiveColumn,
-}) => {
+const checkActiveColumn = ({ e, activeColumn, headerCoords }) => {
   let mouseCoords = {
     x: -1,
     y: -1,
@@ -27,9 +22,6 @@ const checkActiveColumn = ({
   headerCoords.forEach((bound, i) => {
     if (bound.l <= mouseCoords.x && bound.r >= mouseCoords.x) {
       if (activeColumn !== i) {
-        if (setActiveColumn) {
-          setActiveColumn(i);
-        }
         newActiveColumn = i;
       }
     }

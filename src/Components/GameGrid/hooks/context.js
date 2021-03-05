@@ -1,21 +1,22 @@
-import React, { useContext, useState, useEffect, useRef } from "react";
-import useGridCoords from "./useGridCoords";
+import React, { useContext, useState, useEffect } from "react";
 import useBoard from "./useBoard";
 import checkWin from "../../../util/checkWin";
 import findMoveCoords from "../../../util/findMoveCoords";
 import checkActiveColumn from "../../../util/checkActiveColumn";
-import animateMove from "../../../shared/animateMove";
 
 const BoardContext = React.createContext();
 export default BoardContext;
 
 const BoardContextProvider = (props) => {
-  const gameGridRef = useRef();
-
-  const { headerCoords, gameMatrixCoords } = useGridCoords();
   const [loading, setLoading] = useState(true);
 
-  const { boardState, dispatch } = useBoard();
+  const {
+    boardState,
+    dispatch,
+    gameGridRef,
+    headerCoords,
+    gameMatrixCoords,
+  } = useBoard();
   const {
     locked,
     activeColumn,
@@ -34,78 +35,10 @@ const BoardContextProvider = (props) => {
   };
 
   useEffect(() => {
-    console.log(gameStatus);
-  }, [gameStatus]);
-
-  useEffect(() => {
     setTimeout(() => {
       setLoading(false);
     }, 2000);
   }, [loading]);
-
-  useEffect(() => {
-    const gameGrid = gameGridRef.current;
-    const dragToken = (e) => {
-      if (locked) return;
-      const newActiveColumn = checkActiveColumn({
-        e,
-        activeColumn,
-        headerCoords,
-      });
-      if (newActiveColumn !== activeColumn) {
-        dispatch({
-          type: "UPDATE_ACTIVE_COLUMN",
-          payload: { activeColumn: newActiveColumn },
-        });
-      }
-    };
-    gameGrid.addEventListener("mousemove", dragToken);
-    return () => gameGrid.removeEventListener("mousemove", dragToken);
-  }, [locked, activeColumn, headerCoords, dispatch]);
-
-  useEffect(() => {
-    const gameGrid = gameGridRef.current;
-
-    const lockMove = (e) => {
-      if (locked) return;
-      const newActiveColumn = checkActiveColumn({
-        e,
-        activeColumn,
-        headerCoords,
-      });
-      dispatch({
-        type: "LOCK_MOVE",
-        payload: { activeColumn: newActiveColumn },
-      });
-    };
-    gameGrid.addEventListener("mousedown", lockMove);
-    return () => {
-      gameGrid.removeEventListener("mousedown", lockMove);
-    };
-  }, [locked, activeColumn, headerCoords, dispatch]);
-
-  useEffect(() => {
-    const handleMove = ({ move }) => {
-      const { x, y } = move;
-      const onAfterAnimate = () => {
-        dispatch({
-          type: "HANDLE_MOVE",
-          payload: { move: { x, y }, playerId: currentPlayer },
-        });
-      };
-      const top = gameMatrixCoords[y][x].y - headerCoords[y].y;
-      animateMove({ x, y, top, onComplete: onAfterAnimate });
-    };
-    if (gameStatus === "HANDLE_MOVE") handleMove({ move: currentMove });
-  }, [
-    gameStatus,
-    dispatch,
-    gameMatrixCoords,
-    activeColumn,
-    currentPlayer,
-    headerCoords,
-    lastMove,
-  ]);
 
   useEffect(() => {
     const handleCurrentMove = () => {
