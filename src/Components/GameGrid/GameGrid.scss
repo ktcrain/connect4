@@ -1,13 +1,22 @@
 $lightYellow: rgb(238, 234, 189);
 
-.GameGrid {
+// full height wrapper for main screen
+.GameGrid-Wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 100%;
   height: 100vh;
+}
 
+.GameGrid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: auto;
   &-Loading {
     position: fixed;
     background: $lightYellow;
@@ -29,18 +38,6 @@ $lightYellow: rgb(238, 234, 189);
       font-weight: bold;
     }
   }
-}
-
-// TweenMax CSS Rule selector
-.GameGrid-Table thead td.header.active span:after {
-  position: absolute;
-  display: block;
-  content: "";
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  top: 0px;
-  left: 0px;
 }
 
 button {

@@ -6,7 +6,7 @@
     opacity: 0;
   }
   &.locked {
-    // background: orange;
+    background: orange;
     td {
       &.highlight {
         background: inherit;
@@ -45,14 +45,27 @@
       }
     }
     // background: purple;
-    td.active span {
+    td.active span,
+    td.current span {
       // background: orange; // debug
       position: relative;
+      &:after {
+        position: absolute;
+        display: block;
+        content: "";
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        top: 0px;
+        left: 0px;
+      }
     }
-    td.active.player1 span:after {
+    td.active.player1 span:after,
+    td.current.player1 span:after {
       background: red;
     }
-    td.active.player2 span:after {
+    td.active.player2 span:after,
+    td.current.player2 span:after {
       background: blue;
     }
   }
@@ -67,4 +80,16 @@
       }
     }
   }
+}
+
+// TweenMax CSS Rule selector
+.GameGrid-Table thead td.header.current span:after {
+  position: absolute;
+  display: block;
+  content: "";
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  top: 0px;
+  left: 0px;
 }

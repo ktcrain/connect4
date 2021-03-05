@@ -1,7 +1,7 @@
-import useGameGrid from "./useGameGrid";
+// import useGameGrid from "./useGameGrid";
 import useGridCoords from "./useGridCoords";
-import { useBoardContext } from "./context";
+import BoardContext, { useBoardContext } from "./context";
 
-export default useGameGrid;
+export default BoardContext;
 
 export { useGridCoords, useBoardContext };

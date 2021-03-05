@@ -1,21 +1,24 @@
-import React from "react";
+import React, { useContext } from "react";
 import { isWinningCoord } from "../../util/checkWin";
-import { useBoardContext } from "../GameGrid/hooks";
+// import { useBoardContext } from "../GameGrid/hooks";
 import "./GameGridTable.scss";
 const classNames = require("classnames");
 
-function GameGridTable() {
+function GameGridTable({ display, context }) {
   const {
     activeColumn,
     gameMatrix,
     currentPlayer,
     winningCoords,
     loading,
-  } = useBoardContext();
+    locked,
+    currentColumn,
+  } = useContext(context);
 
   const tableClasses = classNames({
     "GameGrid-Table": true,
     loading: loading,
+    locked: locked,
   });
 
   return (
@@ -27,6 +30,7 @@ function GameGridTable() {
               header: true,
               [`header${y}`]: true,
               active: y === activeColumn,
+              current: y === currentColumn,
               [`player${currentPlayer}`]: true,
             });
             return (
