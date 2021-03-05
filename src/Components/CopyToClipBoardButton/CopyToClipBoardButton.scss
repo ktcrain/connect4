@@ -1,0 +1,23 @@
+// [TODO] global colors file
+$lightBlue: #0069ed;
+
+.CopyToClipboardButton {
+  background: darken(#fff, 5%);
+  border: double 1px $lightBlue;
+  color: $lightBlue;
+  position: relative;
+  padding: 0;
+  input {
+    background: transparent;
+    border: 0;
+    padding: 1rem;
+    &:focus {
+      border: 0;
+      outline: 0;
+    }
+  }
+  .CopyIcon {
+    cursor: pointer;
+    padding: 0.5rem;
+  }
+}

@@ -10,8 +10,8 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <main>
-          <Header />
+        <Header />
+        <main className="App-Main">
           <Switch>
             <Route exact path="/">
               <BoardContextProvider>

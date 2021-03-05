@@ -19,6 +19,7 @@ function GameGridTable({ display, context }) {
     "GameGrid-Table": true,
     loading: loading,
     locked: locked,
+    display: display,
   });
 
   return (

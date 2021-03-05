@@ -1,13 +1,10 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 import useGridCoords from "./useGridCoords";
-import getInitialGameMatrix from "./getInitialGameMatrix";
+import useBoard from "./useBoard";
 import checkWin from "../../../util/checkWin";
 import findMoveCoords from "../../../util/findMoveCoords";
 import checkActiveColumn from "../../../util/checkActiveColumn";
-import { CSSRulePlugin } from "gsap/CSSRulePlugin";
-import { gsap, TimelineLite, Bounce } from "gsap";
-
-gsap.registerPlugin(CSSRulePlugin);
+import animateMove from "../../../shared/animateMove";
 
 const BoardContext = React.createContext();
 export default BoardContext;
@@ -15,24 +12,24 @@ export default BoardContext;
 const BoardContextProvider = (props) => {
   const gameGridRef = useRef();
 
-  const [gameStatus, setGameStatus] = useState("PLAYING");
   const { headerCoords, gameMatrixCoords } = useGridCoords();
-  const [locked, setLocked] = useState(false);
-  const [activeColumn, setActiveColumn] = useState(null);
-  const [gameMatrix, setGameMatrix] = useState(getInitialGameMatrix());
-  const [currentPlayer, setCurrentPlayer] = useState(1);
-  const [lastMove, setLastMove] = useState(null);
-  const [winner, setWinner] = useState(null);
-  const [winningCoords, setWinningCoords] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const { boardState, dispatch } = useBoard();
+  const {
+    locked,
+    activeColumn,
+    currentColumn,
+    lastMove,
+    gameStatus,
+    gameMatrix,
+    currentPlayer,
+    winner,
+    winningCoords,
+  } = boardState;
+
   const handleReset = () => {
-    setGameMatrix(getInitialGameMatrix());
-    setLastMove(null);
-    setLocked(false);
-    setWinner(null);
-    setWinningCoords([]);
-    setGameStatus("PLAYING");
+    dispatch({ type: "RESET" });
   };
 
   useEffect(() => {
@@ -46,95 +43,84 @@ const BoardContextProvider = (props) => {
 
     const lockMove = (e) => {
       if (locked) return;
-      checkActiveColumn({ e, activeColumn, headerCoords, setActiveColumn });
-      setGameStatus("GAME_HANDLE_MOVE");
-      setLocked(true);
+      const newActiveColumn = checkActiveColumn({
+        e,
+        activeColumn,
+        headerCoords,
+      });
+      dispatch({
+        type: "LOCK_MOVE",
+        payload: { activeColumn: newActiveColumn },
+      });
     };
     gameGrid.addEventListener("mousedown", lockMove);
     return () => {
       gameGrid.removeEventListener("mousedown", lockMove);
     };
-  }, [locked, activeColumn, headerCoords]);
+  }, [locked, activeColumn, headerCoords, dispatch]);
 
   useEffect(() => {
     const gameGrid = gameGridRef.current;
     const dragToken = (e) => {
       if (locked) return;
-      checkActiveColumn({ e, activeColumn, headerCoords, setActiveColumn });
+      const newActiveColumn = checkActiveColumn({
+        e,
+        activeColumn,
+        headerCoords,
+      });
+      if (newActiveColumn !== activeColumn) {
+        dispatch({
+          type: "UPDATE_ACTIVE_COLUMN",
+          payload: { activeColumn: newActiveColumn },
+        });
+      }
     };
     gameGrid.addEventListener("mousemove", dragToken);
     return () => gameGrid.removeEventListener("mousemove", dragToken);
-  }, [locked, activeColumn, headerCoords]);
+  }, [locked, activeColumn, headerCoords, dispatch]);
 
   useEffect(() => {
-    const animateMove = ({ x, y, onComplete, top }) => {
-      const token = CSSRulePlugin.getRule(
-        `.GameGrid-Table thead td.header.active span:after`
-      );
-
-      const tl = new TimelineLite({ onComplete });
-      tl.to(token, 1, {
-        top: top + "px",
-        ease: Bounce.easeOut,
-      }).set(token, {
-        top: 0,
-      });
-    };
-
     const handleMove = () => {
-      const moveCoords = findMoveCoords({ x: activeColumn, gameMatrix });
-      if (moveCoords) {
-        const { x, y } = moveCoords;
-        const onAfterAnimate = () => {
-          setLastMove({ x, y });
-          setGameMatrix((gm) => {
-            gm[y][x] = currentPlayer;
-            return gm;
-          });
-          setActiveColumn(null); // for mobile
-          setGameStatus("CHECK_WINNER");
-        };
-        const top = gameMatrixCoords[y][x].y - headerCoords[y].y;
-        animateMove({ x, y, top, onComplete: onAfterAnimate });
-      }
+      const move = findMoveCoords({ x: activeColumn, gameMatrix });
+      const { x, y } = move;
+      const onAfterAnimate = () => {
+        dispatch({
+          type: "HANDLE_MOVE",
+          payload: { move: { x, y }, playerId: currentPlayer },
+        });
+      };
+      const top = gameMatrixCoords[y][x].y - headerCoords[y].y;
+      animateMove({ x, y, top, onComplete: onAfterAnimate });
     };
-    if (gameStatus === "GAME_HANDLE_MOVE") handleMove();
+    if (gameStatus === "HANDLE_MOVE") handleMove();
   }, [
     gameStatus,
-    setGameStatus,
+    dispatch,
     gameMatrixCoords,
     activeColumn,
-    setActiveColumn,
     currentPlayer,
     gameMatrix,
     headerCoords,
+    lastMove,
   ]);
 
   useEffect(() => {
     const checkWinner = () => {
-      const winningResult = checkWin({ lastMove, gameMatrix, currentPlayer });
-
-      if (winningResult) {
-        setWinner(winningResult.winner);
-        setGameStatus("GAME_WIN");
-        setWinningCoords(winningResult.matches);
+      const result = checkWin({ lastMove, gameMatrix, currentPlayer });
+      if (result) {
+        dispatch({
+          type: "HANDLE_WINNER",
+          payload: { result },
+        });
       } else {
-        setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
-        setGameStatus("PLAYING");
-        setLocked(false);
+        dispatch({
+          type: "SWITCH_PLAYER",
+          payload: { playerId: currentPlayer === 1 ? 2 : 1 },
+        });
       }
     };
-
     if (gameStatus === "CHECK_WINNER") checkWinner();
-  }, [
-    gameStatus,
-    currentPlayer,
-    gameMatrix,
-    lastMove,
-    winner,
-    setGameStatus,
-    setLocked,
-  ]);
+  }, [gameStatus, currentPlayer, gameMatrix, lastMove, winner, dispatch]);
 
   return (
     <BoardContext.Provider
@@ -152,6 +138,7 @@ const BoardContextProvider = (props) => {
         winningCoords,
         loading,
         gameGridRef,
+        currentColumn,
       }}
     >
       {props.children}

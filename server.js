@@ -22,10 +22,10 @@ io.on("connection", (socket) => {
   // ...
   console.log("new connection");
 
-  socket.on("joinRoom", ({ roomId }) => {
-    console.log("roomId", roomId);
+  socket.on("joinRoom", ({ roomId, playerId }) => {
+    console.log("roomId", roomId, playerId);
     socket.join(roomId);
-    io.to(roomId).emit("friendJoined", { foo: "bar" });
+    io.to(roomId).emit("roomJoined", { playerId });
   });
 
   socket.on("setGameMatrix", ({ roomId, gameMatrix }) => {
@@ -38,10 +38,20 @@ io.on("connection", (socket) => {
     io.to(roomId).emit("move", { pid, move });
   });
 
-  socket.on("setCurrentPlayer", ({ roomId, currentPlayer }) => {
-    console.log("setCurrentPlayer", currentPlayer);
-    io.to(roomId).emit("currentPlayer", { currentPlayer });
+  socket.on("setWinningResult", ({ roomId, result }) => {
+    console.log("result", result);
+    io.to(roomId).emit("winningResult", result);
   });
+
+  socket.on("handleReset", ({ roomId }) => {
+    console.log("handleReset");
+    io.to(roomId).emit("reset");
+  });
+
+  // socket.on("setCurrentPlayer", ({ roomId, currentPlayer }) => {
+  //   console.log("setCurrentPlayer", currentPlayer);
+  //   io.to(roomId).emit("currentPlayer", { currentPlayer });
+  // });
 });
 
 httpServer.listen(6455);
