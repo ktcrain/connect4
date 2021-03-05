@@ -21,6 +21,7 @@ const BoardContextProvider = (props) => {
     activeColumn,
     currentColumn,
     lastMove,
+    currentMove,
     gameStatus,
     gameMatrix,
     currentPlayer,
@@ -33,10 +34,34 @@ const BoardContextProvider = (props) => {
   };
 
   useEffect(() => {
+    console.log(gameStatus);
+  }, [gameStatus]);
+
+  useEffect(() => {
     setTimeout(() => {
       setLoading(false);
     }, 2000);
   }, [loading]);
+
+  useEffect(() => {
+    const gameGrid = gameGridRef.current;
+    const dragToken = (e) => {
+      if (locked) return;
+      const newActiveColumn = checkActiveColumn({
+        e,
+        activeColumn,
+        headerCoords,
+      });
+      if (newActiveColumn !== activeColumn) {
+        dispatch({
+          type: "UPDATE_ACTIVE_COLUMN",
+          payload: { activeColumn: newActiveColumn },
+        });
+      }
+    };
+    gameGrid.addEventListener("mousemove", dragToken);
+    return () => gameGrid.removeEventListener("mousemove", dragToken);
+  }, [locked, activeColumn, headerCoords, dispatch]);
 
   useEffect(() => {
     const gameGrid = gameGridRef.current;
@@ -60,28 +85,7 @@ const BoardContextProvider = (props) => {
   }, [locked, activeColumn, headerCoords, dispatch]);
 
   useEffect(() => {
-    const gameGrid = gameGridRef.current;
-    const dragToken = (e) => {
-      if (locked) return;
-      const newActiveColumn = checkActiveColumn({
-        e,
-        activeColumn,
-        headerCoords,
-      });
-      if (newActiveColumn !== activeColumn) {
-        dispatch({
-          type: "UPDATE_ACTIVE_COLUMN",
-          payload: { activeColumn: newActiveColumn },
-        });
-      }
-    };
-    gameGrid.addEventListener("mousemove", dragToken);
-    return () => gameGrid.removeEventListener("mousemove", dragToken);
-  }, [locked, activeColumn, headerCoords, dispatch]);
-
-  useEffect(() => {
-    const handleMove = () => {
-      const move = findMoveCoords({ x: activeColumn, gameMatrix });
+    const handleMove = ({ move }) => {
       const { x, y } = move;
       const onAfterAnimate = () => {
         dispatch({
@@ -92,11 +96,29 @@ const BoardContextProvider = (props) => {
       const top = gameMatrixCoords[y][x].y - headerCoords[y].y;
       animateMove({ x, y, top, onComplete: onAfterAnimate });
     };
-    if (gameStatus === "HANDLE_MOVE") handleMove();
+    if (gameStatus === "HANDLE_MOVE") handleMove({ move: currentMove });
   }, [
     gameStatus,
     dispatch,
     gameMatrixCoords,
+    activeColumn,
+    currentPlayer,
+    headerCoords,
+    lastMove,
+  ]);
+
+  useEffect(() => {
+    const handleCurrentMove = () => {
+      const move = findMoveCoords({ x: activeColumn, gameMatrix });
+      dispatch({
+        type: "HANDLE_CURRENT_MOVE",
+        payload: { move, playerId: currentPlayer },
+      });
+    };
+    if (gameStatus === "HANDLE_CURRENT_MOVE") handleCurrentMove();
+  }, [
+    gameStatus,
+    dispatch,
     activeColumn,
     currentPlayer,
     gameMatrix,

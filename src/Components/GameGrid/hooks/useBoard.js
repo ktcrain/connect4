@@ -9,6 +9,7 @@ function useBoard() {
       activeColumn: null,
       currentColumn: null,
       lastMove: null,
+      currentMove: null,
       currentPlayer: 1,
       gameMatrix: getInitialGameMatrix(),
       winner: null,
@@ -21,9 +22,6 @@ function useBoard() {
     const { type, payload } = action;
 
     switch (type) {
-      case "UPDATE_GAME_STATUS":
-        state.gameStatus = payload.gameStatus;
-        break;
       case "RESET":
         state = getInitialState();
         break;
@@ -34,6 +32,11 @@ function useBoard() {
         state.locked = true;
         state.activeColumn = payload.activeColumn;
         state.currentColumn = payload.activeColumn;
+        state.gameStatus = "HANDLE_CURRENT_MOVE";
+        break;
+      case "HANDLE_CURRENT_MOVE":
+        state.currentMove = payload.move;
+        state.currentColumn = payload.move.x;
         state.gameStatus = "HANDLE_MOVE";
         break;
       case "HANDLE_MOVE":
