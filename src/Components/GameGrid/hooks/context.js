@@ -35,7 +35,7 @@ const BoardContextProvider = (props) => {
   useEffect(() => {
     setTimeout(() => {
       setLoading(false);
-    }, 2000);
+    }, 1000);
   }, [loading]);
 
   useEffect(() => {

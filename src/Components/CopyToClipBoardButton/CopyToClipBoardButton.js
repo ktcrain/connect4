@@ -17,7 +17,14 @@ function CopyToClipBoardButton({ children }) {
 
   return (
     <div className="CopyToClipboardButton">
-      <input readOnly ref={copyRef} value={children} />
+      <label for="CopyToClipboardButton">
+        <input
+          id="CopyToClipboardButton"
+          readOnly
+          ref={copyRef}
+          value={children}
+        />
+      </label>
       {/* <span className="Contents">{children}</span> */}
       <span className="CopyIcon" onClick={handleCopyToClipboard}>
         <FaCopy />
