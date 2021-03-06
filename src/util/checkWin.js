@@ -24,6 +24,8 @@ const checkWinHorizontal = ({ lastMove, gameMatrix, currentPlayer }) => {
           x,
           y,
         });
+      } else if (matches.length < 4) {
+        matches = [];
       }
     }
   }
@@ -47,6 +49,8 @@ const checkWinVertical = ({ lastMove, gameMatrix, currentPlayer }) => {
           x,
           y,
         });
+      } else if (matches.length < 4) {
+        matches = [];
       }
     }
   }
@@ -71,6 +75,8 @@ const checkWinPositiveDiagonal = ({ lastMove, gameMatrix, currentPlayer }) => {
           x,
           y,
         });
+      } else if (matches.length < 4) {
+        matches = [];
       }
     }
   }
@@ -95,6 +101,8 @@ const checkWinNegativeDiagonal = ({ lastMove, gameMatrix, currentPlayer }) => {
           x,
           y,
         });
+      } else if (matches.length < 4) {
+        matches = [];
       }
     }
   }
