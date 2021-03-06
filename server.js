@@ -2,16 +2,16 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
 const app = express();
+var http = require("http").createServer(app);
 app.use(express.static(path.join(__dirname, "build")));
 
 app.get("*", function (req, res) {
   res.sendFile(path.join(__dirname, "build", "index.html"));
 });
 
-app.listen(process.env.PORT || 8080);
+// app.listen(process.env.PORT || 8080);
 
-const httpServer = require("http").createServer();
-const io = require("socket.io")(httpServer, {
+const io = require("socket.io")(http, {
   cors: {
     origin: "*",
     allowedHeaders: ["Access-Control-Allow-Origin"],
@@ -47,11 +47,6 @@ io.on("connection", (socket) => {
     console.log("handleReset");
     io.to(roomId).emit("reset");
   });
-
-  // socket.on("setCurrentPlayer", ({ roomId, currentPlayer }) => {
-  //   console.log("setCurrentPlayer", currentPlayer);
-  //   io.to(roomId).emit("currentPlayer", { currentPlayer });
-  // });
 });
 
-httpServer.listen(6455);
+http.listen(process.env.PORT || 8080);

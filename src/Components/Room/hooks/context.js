@@ -48,7 +48,7 @@ const BoardContextProvider = (props) => {
       console.log("Initializing websocket");
       const host = window.location.host;
       const domain = host.split(":")[0];
-      const wsString = `ws://${domain}:6455`;
+      const wsString = `ws://${domain}:8080`;
       console.log("wsString", wsString);
       const socket = io(wsString);
       setSocket(socket);
