@@ -44,8 +44,7 @@ function GameGrid() {
             animate={{ top: 0, opacity: 1, height: "auto" }}
             exit={{ top: "-200px", opacity: 0, height: 0 }}
             transition={{
-              delay: 1,
-              default: { duration: 1 },
+              default: { duration: 0.25 },
             }}
             className="GameGrid-Wrapper"
           >
