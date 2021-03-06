@@ -1,11 +1,11 @@
 import React, { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import "./App.scss";
+import GameGrid from "../GameGrid";
 import Header from "../Header";
 import { BoardContextProvider } from "../GameGrid/hooks/context";
 import { BoardContextProvider as RoomContextProvider } from "../Room/hooks/context";
 
-const GameGrid = lazy(() => import("../GameGrid"));
 const Room = lazy(() => import("../Room"));
 
 function App() {
