@@ -7,7 +7,7 @@ const BoardContext = React.createContext();
 export default BoardContext;
 
 const BoardContextProvider = (props) => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const {
     boardState,
@@ -32,11 +32,11 @@ const BoardContextProvider = (props) => {
     dispatch({ type: "RESET" });
   };
 
-  useEffect(() => {
-    // setTimeout(() => {
-    setLoading(false);
-    // }, 1000);
-  }, [loading]);
+  // useEffect(() => {
+  //   // setTimeout(() => {
+  //   setLoading(false);
+  //   // }, 1000);
+  // }, [loading]);
 
   useEffect(() => {
     const handleCurrentMove = () => {
