@@ -62,8 +62,10 @@ const checkWinPositiveDiagonal = ({ lastMove, gameMatrix, currentPlayer }) => {
   // Positive Diagonal
   let xMin = minVal(lastMove.x - 3, 0);
   let xMax = maxVal(lastMove.x + 3, xGridMax);
-  let yMin = minVal(lastMove.y, 0);
-  let yMax = maxVal(lastMove.y + 3, yGridMax);
+  let yMin = 0;
+  let yMax = yGridMax;
+  // let yMin = minVal(lastMove.y, 0);
+  // let yMax = maxVal(lastMove.y + 3, yGridMax);
   let matches = [];
 
   // eslint-disable-next-line no-sequences
