@@ -8,16 +8,16 @@ import GameGridTable from "../GameGridTable";
 function GameGrid() {
   const { winner, handleReset, loading } = useBoardContext();
   return (
-    <AnimatePresence exitBeforeEnter>
+    <AnimatePresence>
       <div className="GameGrid-Wrapper">
         <div className="GameGrid">
           {winner && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
+              initial={{ opacity: 0, height: 0, top: "-300px" }}
+              animate={{ opacity: 1, height: "auto", top: "0" }}
               exit={{ opacity: 0, height: 0, top: "-300px" }}
               transition={{
-                height: { type: "spring", stiffness: 100 },
+                // top: { type: "spring", stiffness: 100 },
                 default: { duration: 1 },
               }}
               className="GameGrid-Winner"
