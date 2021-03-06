@@ -40,8 +40,8 @@ function GameGrid() {
             </motion.div>
           )}
           <motion.div
-            initial={{ top: "-200px", opacity: 0, height: 0 }}
-            animate={{ top: 0, opacity: 1, height: "auto" }}
+            initial={false}
+            animate={{ opacity: 1 }}
             exit={{ top: "-200px", opacity: 0, height: 0 }}
             transition={{
               default: { duration: 0.25 },
