@@ -1,8 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
-// import useGridCoords from "../../../shared/hooks/useGridCoords";
 import checkWin from "../../../util/checkWin";
 import findMoveCoords from "../../../util/findMoveCoords";
-import checkActiveColumn from "../../../util/checkActiveColumn";
 import { io } from "socket.io-client";
 import { useParams } from "react-router-dom";
 import useBoard from "../../GameGrid/hooks/useBoard";
@@ -109,7 +107,7 @@ const BoardContextProvider = (props) => {
       socket.emit("joinRoom", { roomId: newRoomId, playerId: 1 });
       setRoomId(newRoomId);
     }
-  }, [slug, socket, roomId, connected]);
+  }, [slug, socket, roomId, connected, dispatch]);
 
   useEffect(() => {
     console.log("connected", connected);
@@ -135,6 +133,9 @@ const BoardContextProvider = (props) => {
   useEffect(() => {
     const handleCurrentMove = () => {
       const move = findMoveCoords({ x: activeColumn, gameMatrix });
+      if (!move) {
+        console.trace(activeColumn);
+      }
       console.log("sending move to server");
       socket.emit("move", {
         pid: playerId,

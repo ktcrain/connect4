@@ -26,6 +26,7 @@ function useBoard() {
 
   useEffect(() => {
     const gameGrid = gameGridRef.current;
+    if (!gameGrid) return;
     const { locked, activeColumn, playerId, currentPlayer } = boardState;
     const dragToken = (e) => {
       if (locked) return;
@@ -51,6 +52,7 @@ function useBoard() {
 
   useEffect(() => {
     const gameGrid = gameGridRef.current;
+    if (!gameGrid) return;
     const { locked, activeColumn, currentPlayer, playerId } = boardState;
 
     const lockMove = (e) => {
@@ -79,7 +81,6 @@ function useBoard() {
 
   useEffect(() => {
     const { gameStatus, currentMove, currentPlayer } = boardState;
-
     const handleMove = ({ move }) => {
       const { x, y } = move;
       const onAfterAnimate = () => {

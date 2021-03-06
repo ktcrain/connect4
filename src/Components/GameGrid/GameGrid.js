@@ -6,11 +6,11 @@ import PageLoader from "../PageLoader";
 import GameGridTable from "../GameGridTable";
 
 function GameGrid() {
-  const { winner, handleReset, loading, gameGridRef } = useBoardContext();
+  const { winner, handleReset, loading } = useBoardContext();
   return (
     <AnimatePresence exitBeforeEnter>
       <div className="GameGrid-Wrapper">
-        <div className="GameGrid" ref={gameGridRef}>
+        <div className="GameGrid">
           {winner && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}

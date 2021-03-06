@@ -2,7 +2,6 @@ import React, { useContext, useState, useEffect } from "react";
 import useBoard from "./useBoard";
 import checkWin from "../../../util/checkWin";
 import findMoveCoords from "../../../util/findMoveCoords";
-import checkActiveColumn from "../../../util/checkActiveColumn";
 
 const BoardContext = React.createContext();
 export default BoardContext;
@@ -22,7 +21,6 @@ const BoardContextProvider = (props) => {
     activeColumn,
     currentColumn,
     lastMove,
-    currentMove,
     gameStatus,
     gameMatrix,
     currentPlayer,
@@ -43,6 +41,9 @@ const BoardContextProvider = (props) => {
   useEffect(() => {
     const handleCurrentMove = () => {
       const move = findMoveCoords({ x: activeColumn, gameMatrix });
+      if (!move) {
+        console.trace(activeColumn, gameMatrix);
+      }
       dispatch({
         type: "HANDLE_CURRENT_MOVE",
         payload: { move, playerId: currentPlayer },

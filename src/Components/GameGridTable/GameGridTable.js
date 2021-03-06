@@ -13,6 +13,7 @@ function GameGridTable({ display, context }) {
     loading,
     locked,
     currentColumn,
+    gameGridRef,
   } = useContext(context);
 
   const tableClasses = classNames({
@@ -23,7 +24,7 @@ function GameGridTable({ display, context }) {
   });
 
   return (
-    <table className={tableClasses}>
+    <table ref={gameGridRef} className={tableClasses}>
       <thead>
         <tr id="GameGridTableHeader">
           {gameMatrix[0].map((x, y) => {

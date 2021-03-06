@@ -10,7 +10,6 @@ import CopyToClipBoardButton from "../CopyToClipBoardButton";
 function Room() {
   const {
     currentPlayer,
-    gameGridRef,
     playerId,
     roomId,
     connected,
@@ -82,7 +81,7 @@ function Room() {
           )}
         </div>
       )}
-      <div className="GameGrid" ref={gameGridRef} key="GameGrid">
+      <div className="GameGrid" key="GameGrid">
         {!loading && (
           <motion.div
             initial={{ opacity: 0, height: "0" }}
